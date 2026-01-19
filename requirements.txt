@@ -1,0 +1,8 @@
+qdrant-client
+torch
+torchvision
+pillow
+openai
+numpy
+matplotlib
+scipy
