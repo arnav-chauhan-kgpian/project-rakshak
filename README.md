@@ -40,7 +40,7 @@
 
 ## 💡 Our Solution
 
-**Guardian Overwatch** is an AI-powered disaster response system with **two operational modes**:
+**Project Rakshak** is an AI-powered disaster response system with **two operational modes**:
 
 | Mode | Purpose | Key Tech |
 |------|---------|----------|
@@ -77,7 +77,7 @@ Both modes are powered by **15 specialized AI agents** orchestrated through a un
 
 ```bash
 # Clone the repo
-git clone https://github.com/arnav-chauhan-kgpian/project-rakshak.git
+git clone https://github.com/23ME30056/project-rakshak.git
 cd project-rakshak
 
 # Create virtual environment
@@ -105,7 +105,7 @@ Open **http://localhost:8501** in your browser.
 ### Step 1: Clone Repository
 
 ```bash
-git clone https://github.com/arnav-chauhan-kgpian/project-rakshak.git
+git clone https://github.com/23ME30056/project-rakshak.git
 cd project-rakshak
 ```
 
@@ -133,7 +133,7 @@ pip install -r requirements.txt
 
 ### Step 4: Start Qdrant
 
-**Option A: Docker (Recommended)**
+**Option A: Docker**
 ```bash
 docker pull qdrant/qdrant
 docker run -p 6333:6333 -p 6334:6334 \
@@ -179,6 +179,44 @@ QDRANT_URL=http://localhost:6333
 2. Click "Get API Key"
 3. Create a new key
 4. Copy and paste into `.env`
+
+---
+
+## 📂 Data Setup & Ingestion
+
+To enable the historical matching capabilities (Rakshak Intel), you need to ingest the **xBD Disaster Dataset**.
+
+### 1. Download the Dataset
+We use the **xBD Dataset** (created by xView2 Challenge) for historical disaster data.
+1. Download the dataset (specifically the **train** set is sufficient for demo).
+2. Extract the files so your project structure looks like this:
+   ```
+   project-rakshak/
+   ├── test/
+   │   ├── images/       # Contains *_post_disaster.png files
+   │   └── labels/       # Contains JSON metadata
+   ```
+
+### 2. Download Audio Dataset
+We use a **911 Audio Dataset** (or similar emergency call dataset) for the distress signal pipeline.
+1. Download standard emergency call samples (wav/mp3).
+2. Place them in:
+   ```
+   project-rakshak/
+   ├── audio_data/   # Place audio files here
+   ```
+
+### 3. Ingest Embeddings
+Run the batch ingestion script to generate DINOv2 (visual) and CLAP (audio) embeddings:
+
+```bash
+python main.py --batch-ingest
+```
+
+> ⚠️ **Note:** This process generates:
+> - **768-dim DINOv2 vectors** for satellite images
+> - **512-dim CLAP vectors** for audio panic analysis
+> It may take 10-20 minutes depending on your hardware.
 
 ---
 
