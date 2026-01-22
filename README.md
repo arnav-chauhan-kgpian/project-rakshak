@@ -210,7 +210,7 @@ To enable the historical matching capabilities (Rakshak Intel), you need to inge
 
 ### 1. Download the Dataset
 We use the **xBD Dataset** (created by xView2 Challenge) for historical disaster data.
-1. Download the dataset (specifically the **train** set is sufficient for demo). Dataset link - https://xview2.org/
+1. Download the dataset (specifically the **test** set is sufficient for demo). Dataset link - https://xview2.org/
 2. Extract the files so your project structure looks like this:
    ```
    project-rakshak/

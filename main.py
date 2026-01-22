@@ -1,5 +1,6 @@
-import os
 import sys
+sys.stdout.reconfigure(encoding='utf-8')
+from ingest_audio import ingest_audio_folder
 from layers.ingestion.satellite import SatelliteAgent
 from layers.ingestion.embedding import EmbeddingAgent
 from layers.ingestion.sparse_embedding import SparseEmbeddingAgent
@@ -279,7 +280,7 @@ class CentralCoordinator:
             traceback.print_exc()
             return {"incident_id": incident_id, "status": "ERROR", "error": str(e)}
     
-    def batch_ingest_xbd_data(self, data_dir="test", limit=None):
+    def batch_ingest_xbd_data(self, data_dir="train", limit=None):
         """
         Batch ingest xBD dataset images and labels into Qdrant.
         
@@ -471,36 +472,49 @@ def run_rakshak_assessment(coordinator=None, session_logs=None):
     print("[RAKSHAK INTEL] Please input incident parameters (or press ENTER for Demo Defaults):")
     
     # Dynamic Input with Defaults
-    def_img = "imagery/guatemala-volcano_00000003_post_disaster.png"
     def_lat = "34.0522"
     def_lon = "-118.2437"
     def_type = "volcano"
     def_id = "VOLCANO_GUATEMALA_2024_001"
-
-    img_in = input(f"1. Satellite Image Path [Default: {def_img}]: ").strip()
-    if img_in.lower() == 'j':
-        print("Returning to menu...")
-        return
-    image_path = img_in if img_in else def_img
-
-    lat_in = input(f"2. Latitude [Default: {def_lat}]: ").strip()
+    
+    # 1. Latitude (First for Google Earth automation)
+    lat_in = input(f"1. Latitude [Default: {def_lat}]: ").strip()
     if lat_in.lower() == 'j':
         print("Returning to menu...")
         return
     latitude = float(lat_in) if lat_in else float(def_lat)
 
-    lon_in = input(f"3. Longitude [Default: {def_lon}]: ").strip()
+    # 2. Longitude
+    lon_in = input(f"2. Longitude [Default: {def_lon}]: ").strip()
     if lon_in.lower() == 'j':
         print("Returning to menu...")
         return
     longitude = float(lon_in) if lon_in else float(def_lon)
     
+    # 3. Satellite Image (Automated Fetch)
+    fetched_image = None
+    try:
+        print(f"\n[SYSTEM] Attempting to fetch live aerial imagery for ({latitude}, {longitude})...")
+        fetched_image = coordinator.agents["satellite"].fetch_esri_satellite_image(latitude, longitude)
+    except Exception as e:
+        print(f"  ⚠ Auto-fetch failed: {e}")
+
+    def_img = fetched_image if fetched_image else "imagery/guatemala-volcano_00000003_post_disaster.png"
+    
+    img_in = input(f"3. Satellite Image Path [Default: {def_img}]: ").strip()
+    if img_in.lower() == 'j':
+        print("Returning to menu...")
+        return
+    image_path = img_in if img_in else def_img
+
+    # 4. Disaster Type
     type_in = input(f"4. Disaster Type [Default: {def_type}]: ").strip()
     if type_in.lower() == 'j':
         print("Returning to menu...")
         return
     disaster_type = type_in if type_in else def_type
     
+    # 5. Incident ID
     id_in = input(f"5. Incident ID [Default: {def_id}]: ").strip()
     if id_in.lower() == 'j':
         print("Returning to menu...")
@@ -607,11 +621,16 @@ def main():
         # Initialize coordinator
         coordinator = CentralCoordinator()
         
-        if len(sys.argv) > 1 and sys.argv[1] == "--batch-ingest":
+        if "--batch-ingest" in sys.argv:
             print("\n" + "="*70)
             print("BATCH INGESTION MODE: Processing xBD Dataset")
             print("="*70 + "\n")
             coordinator.batch_ingest_xbd_data()
+            
+            print("\n" + "="*70)
+            print("BATCH INGESTION: Audio Data")
+            print("="*70 + "\n")
+            ingest_audio_folder("audio_data")
         else:
             # Default to Rakshak Assessment
             run_rakshak_assessment(coordinator)

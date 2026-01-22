@@ -14,6 +14,7 @@ streamlit>=1.40.0
 
 # Google Gemini (New SDK)
 google-genai>=1.0.0
+google-generativeai
 
 # PyTorch & Transformers (for DINOv2, Whisper, CLAP)
 torch>=2.0.0
