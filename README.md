@@ -188,9 +188,11 @@ GEMINI_API_KEY=your_gemini_api_key_here
 
 # Qdrant Connection
 # Option 1: Local Qdrant
-QDRANT_URL=http://localhost:6333
+QDRANT_URL="http://localhost:6333"
 
 # Option 2: Qdrant Cloud (uncomment if using)
+# QDRANT_HOST="localhost"
+# QDRANT_PORT="6333"
 # QDRANT_URL=https://your-cluster.cloud.qdrant.io
 # QDRANT_API_KEY=your_qdrant_api_key
 ```
@@ -251,15 +253,7 @@ python main.py --reset --batch-ingest
 
 ## ▶️ Running the System
 
-### Method 1: Streamlit Dashboard (Recommended)
-
-```bash
-streamlit run app.py
-```
-
-Then open **http://localhost:8501** in your browser.
-
-### Method 2: Command Line Interface
+### Method 1: Command Line Interface
 
 ```bash
 python run_system.py
@@ -271,6 +265,14 @@ python run_system.py
 [2] 🌍 GUARDIAN OVERWATCH (Damage Assessment)
 [3] 🖥️ LAUNCH DASHBOARD (Streamlit UI)
 [t] 🔌 TERMINATE & SHOW UNIFIED TRIAGE
+```
+
+Then open **http://localhost:8501** in your browser.
+
+### Method 2: Command Line Interface
+
+```bash
+streamlit run app.py
 ```
 
 ### Method 3: Direct Pipeline Execution
