@@ -344,6 +344,7 @@ When you launch the app, you'll see three operation modes:
 ├── test_reasoning.py
 ├── verify_layers.py
 ├── qdrant_image.png
+├── system_architecture.png
 ├── requirements.txt          # 📦 Dependencies
 ├── .env                      # 🔑 API Keys (create this)
 ├── .env.example
