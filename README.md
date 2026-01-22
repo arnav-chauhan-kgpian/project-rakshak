@@ -237,6 +237,7 @@ We use a **911 Audio Dataset** (or similar emergency call dataset) for the distr
 ### 3. Ingest Embeddings
 Run the batch ingestion script to generate DINOv2 (visual) and CLAP (audio) embeddings:
 
+In a new terminal run - 
 ```bash
 python main.py --reset --batch-ingest
 ```
