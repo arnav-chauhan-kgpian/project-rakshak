@@ -77,8 +77,8 @@ Both modes are powered by **15 specialized AI agents** orchestrated through a un
 
 ```bash
 # Clone the repo
-git clone https://github.com/YOUR_USERNAME/guardian-overwatch.git
-cd guardian-overwatch
+git clone https://github.com/arnav-chauhan-kgpian/project-rakshak.git
+cd project-rakshak
 
 # Create virtual environment
 python -m venv venv
@@ -105,8 +105,8 @@ Open **http://localhost:8501** in your browser.
 ### Step 1: Clone Repository
 
 ```bash
-git clone https://github.com/YOUR_USERNAME/guardian-overwatch.git
-cd guardian-overwatch
+git clone https://github.com/arnav-chauhan-kgpian/project-rakshak.git
+cd project-rakshak
 ```
 
 ### Step 2: Create Virtual Environment
