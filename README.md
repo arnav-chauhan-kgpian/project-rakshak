@@ -154,6 +154,10 @@ pip install -r requirements.txt
 ### Step 4: Start Qdrant
 
 **Option A: Docker**
+1. Go to [https://docs.docker.com/desktop/](https://docs.docker.com/desktop/)
+2. Download Docker Desktop
+3. Open the Docker Desktop app and keep it running
+In the terminal run the following
 ```bash
 docker pull qdrant/qdrant
 docker run -p 6333:6333 -v .:/qdrant/storage qdrant/qdrant
