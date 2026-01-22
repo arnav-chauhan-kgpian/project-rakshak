@@ -45,7 +45,7 @@
 | Mode | Purpose | Key Tech |
 |------|---------|----------|
 | 🆘 **Distress Signal** | Real-time chat with victims, voice panic detection | Whisper STT, CLAP Audio |
-| 🛰️ **Guardian Intel** | Satellite imagery analysis, historical matching | DINOv2, Hybrid Search |
+| 🛰️ **Rakshak Intel** | Satellite imagery analysis, historical matching | DINOv2, Hybrid Search |
 
 Both modes are powered by **15 specialized AI agents** orchestrated through a unified pipeline.
 
@@ -77,7 +77,7 @@ Both modes are powered by **15 specialized AI agents** orchestrated through a un
 
 ```bash
 # Clone the repo
-git clone https://github.com/23ME30056/project-rakshak.git
+git clone https://github.com/arnav-chauhan-kgpian/project-rakshak.git
 cd project-rakshak
 
 # Create virtual environment
@@ -88,9 +88,29 @@ venv\Scripts\activate  # Windows
 # Install dependencies
 pip install -r requirements.txt
 
-# Create .env file
-echo GEMINI_API_KEY=your_key_here > .env
-echo QDRANT_URL=http://localhost:6333 >> .env
+## ⚙️ Configuration
+
+### Create `.env` from `.env.example`
+
+This project uses environment variables for all API keys and database configuration.
+
+1. Locate the file named **`.env.example`** in the project root.
+2. Create a new file called **`.env`** in the same directory.
+3. Copy the contents of `.env.example` into `.env`.
+4. Replace the placeholder values with your own credentials.
+
+Your `.env` file should look like this:
+
+```env
+# Qdrant Configuration
+QDRANT_HOST="localhost"
+QDRANT_PORT="6333"
+QDRANT_URL="<YOUR QDRANT CLOUD ENDPOINT>"
+QDRANT_API_KEY="<YOUR QDRANT API KEY>"
+
+# Gemini API
+GEMINI_API_KEY="<YOUR GEMINI API KEY>"
+
 
 # Run!
 streamlit run app.py
@@ -105,7 +125,7 @@ Open **http://localhost:8501** in your browser.
 ### Step 1: Clone Repository
 
 ```bash
-git clone https://github.com/23ME30056/project-rakshak.git
+git clone https://github.com/arnav-chauhan-kgpian/project-rakshak.git
 cd project-rakshak
 ```
 
@@ -136,9 +156,7 @@ pip install -r requirements.txt
 **Option A: Docker**
 ```bash
 docker pull qdrant/qdrant
-docker run -p 6333:6333 -p 6334:6334 \
-  -v $(pwd)/qdrant_storage:/qdrant/storage \
-  qdrant/qdrant
+docker run -p 6333:6333 -v .:/qdrant/storage qdrant/qdrant
 ```
 
 **Option B: Qdrant Cloud**
@@ -188,29 +206,35 @@ To enable the historical matching capabilities (Rakshak Intel), you need to inge
 
 ### 1. Download the Dataset
 We use the **xBD Dataset** (created by xView2 Challenge) for historical disaster data.
-1. Download the dataset (specifically the **train** set is sufficient for demo).
+1. Download the dataset (specifically the **train** set is sufficient for demo). Dataset link - https://xview2.org/
 2. Extract the files so your project structure looks like this:
    ```
    project-rakshak/
-   ├── test/
+   ├── train/
    │   ├── images/       # Contains *_post_disaster.png files
-   │   └── labels/       # Contains JSON metadata
+   │   ├── labels/       # Contains JSON metadata
+   |   └── targets/
    ```
 
 ### 2. Download Audio Dataset
 We use a **911 Audio Dataset** (or similar emergency call dataset) for the distress signal pipeline.
-1. Download standard emergency call samples (wav/mp3).
+1. Download standard emergency call samples (wav/mp3) and the metadata.csv. Dataset link - https://www.kaggle.com/datasets/louisteitelbaum/911-recordings/
 2. Place them in:
    ```
    project-rakshak/
-   ├── audio_data/   # Place audio files here
+   ├── train_audio/   # Place audio files here
+   │   ├── 911_recordings/
+       ├── call_1.mp3
+       ├── call_2.mp3
+       .....
+       └── 911_metadata.csv       
    ```
 
 ### 3. Ingest Embeddings
 Run the batch ingestion script to generate DINOv2 (visual) and CLAP (audio) embeddings:
 
 ```bash
-python main.py --batch-ingest
+python main.py --reset --batch-ingest
 ```
 
 > ⚠️ **Note:** This process generates:
@@ -391,7 +415,7 @@ GEMINI_API_KEY=your_key_here
 curl http://localhost:6333/health
 
 # If not, start it:
-docker run -p 6333:6333 qdrant/qdrant
+docker run -p 6333:6333 -v .:/qdrant/storage qdrant/qdrant
 ```
 
 ### "ModuleNotFoundError"
