@@ -1,4 +1,4 @@
-# 🛡️ Guardian Overwatch
+# 🛡️ Project Rakshak
 
 > **15-Agent Multi-Modal Disaster Response System**  
 > Qdrant-MAS Hackathon (Convolve 4.0) Submission  
