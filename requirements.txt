@@ -1,8 +1,66 @@
-qdrant-client
-torch
-torchvision
-pillow
-openai
-numpy
-matplotlib
-scipy
+# Project Rakshak - Requirements
+# Multi-Modal Disaster Response System
+# Python 3.10+ required
+
+# ============ CORE DEPENDENCIES ============
+
+# Qdrant Vector Database
+qdrant-client>=1.12.0
+
+# Streamlit Dashboard
+streamlit>=1.40.0
+
+# ============ AI/ML MODELS ============
+
+# Google Gemini (New SDK)
+google-genai>=1.0.0
+
+# PyTorch & Transformers (for DINOv2, Whisper, CLAP)
+torch>=2.0.0
+torchvision>=0.15.0
+transformers>=4.35.0
+
+# ============ IMAGE PROCESSING ============
+
+pillow>=10.0.0
+numpy>=1.24.0
+
+# ============ AUDIO PROCESSING ============
+
+# Whisper STT
+openai-whisper>=20231117
+
+# CLAP Audio Embeddings
+laion-clap>=1.1.4
+
+# Audio I/O (optional, for voice input)
+sounddevice>=0.4.6
+soundfile>=0.12.1
+
+# ============ DATA & UTILITIES ============
+
+# Environment Variables
+python-dotenv>=1.0.0
+
+# Data Handling
+pandas>=2.0.0
+
+# HTTP Requests
+requests>=2.28.0
+httpx>=0.28.0
+
+# Retry Logic
+tenacity>=8.2.0
+
+# ============ VISUALIZATION ============
+
+# Charts & Graphs
+matplotlib>=3.7.0
+
+# ============ OPTIONAL (for extended features) ============
+
+# PDF Report Generation
+# fpdf2>=2.7.0
+
+# Sparse Embeddings (if using BM25)
+# rank-bm25>=0.2.2

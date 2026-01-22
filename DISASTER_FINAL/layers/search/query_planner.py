@@ -41,7 +41,10 @@ class QueryPlannerAgent:
                 "disaster_filter": disaster_type,
                 "confidence_threshold": strategy["severity_threshold"],
                 "max_results": 10,
-                "search_mode": "hybrid"  # Vector + metadata filters
+                "search_mode": "hybrid",  # Vector + metadata filters
+                # Allow fallback to global search when no local results exist
+                # Useful for sparse data scenarios or first-run demos
+                "allow_global_fallback": False
             }
             return plan
         except Exception as e:

@@ -4,7 +4,7 @@
 
 ```bash
 # 1. Start Qdrant server
-docker run -p 6333:6333 qdrant/qdrant
+docker run -p 6333:6333 -v .:/qdrant/storage qdrant/qdrant
 
 # 2. Install dependencies
 pip install -r requirements.txt
@@ -12,13 +12,19 @@ pip install -r requirements.txt
 # 3. Initialize Qdrant collection
 python utils/qdrant_init.py
 ```
-
+# 4. ingestion 
+python main.py --batch-ingest
 ## Running the System
 
 ```bash
-# Run complete demo
+# 5. Run complete demo
 python main.py
 
+# YOU HAVE SUCCESFULLY RUN THE PIPELINE! 
+
+###########################################################################################
+
+# More Information 
 # Use in Python
 from main import CentralCoordinator
 coordinator = CentralCoordinator()

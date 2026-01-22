@@ -1,0 +1,88 @@
+# Project Rakshak - .gitignore
+
+# ============ CONFIDENTIAL ============
+# Environment variables (API keys!)
+.env
+.env.local
+.env.*.local
+
+# ============ PYTHON ============
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# Virtual environments
+venv/
+env/
+ENV/
+.venv/
+
+# Distribution / packaging
+build/
+dist/
+*.egg-info/
+*.egg
+
+# ============ QDRANT DATA ============
+# Qdrant storage (large binary files)
+qdrant_storage/
+collections/
+.qdrant_fs_check
+
+# ============ MODELS (LARGE) ============
+# Downloaded model weights
+*.bin
+*.pt
+*.pth
+*.onnx
+models/
+
+# ============ LOGS & OUTPUTS ============
+# Chat logs (may contain PII)
+chat_logs/
+
+# Generated reports
+reports/
+exports/
+
+# Temporary files
+*.tmp
+*.temp
+*.log
+
+# ============ IDE / EDITOR ============
+# VS Code
+.vscode/
+
+# PyCharm
+.idea/
+
+# Jupyter
+.ipynb_checkpoints/
+*.ipynb
+
+# ============ OS FILES ============
+# Windows
+Thumbs.db
+Desktop.ini
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# ============ MISC ============
+# Screenshots (unless needed)
+# Screenshot*.png
+
+# Test files
+test/
+*.test.py
+
+# Raft state (Qdrant internal)
+raft_state.json
+
+# Large PDF files
+*.pdf

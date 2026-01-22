@@ -1,8 +1,7 @@
 """
 Ingestion Layer - Agents 1-4
 - Agent 1: SatelliteAgent - Downloads satellite imagery
-- Agent 2a: EmbeddingAgent - Extracts DINOv2 embeddings (vision)
-- Agent 2b: AudioIngestionAgent - Extracts CLAP embeddings (audio)
+- Agent 2: EmbeddingAgent - Extracts DINOv2 embeddings
 - Agent 3: MetadataAgent - Parses metadata
 - Agent 4: QdrantUpsertAgent - Stores in vector database
 """

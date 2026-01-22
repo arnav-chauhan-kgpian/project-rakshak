@@ -1,258 +1,403 @@
-# Multi-Agent Disaster Response System (MAS)
+# 🛡️ Guardian Overwatch
 
-A sophisticated 14-agent distributed system for real-time disaster damage assessment using satellite imagery and vector similarity search.
+> **15-Agent Multi-Modal Disaster Response System**  
+> Qdrant-MAS Hackathon (Convolve 4.0) Submission  
+> **Made by Shaunak Majumdar & Arnav Chauhan, IIT Kharagpur**
 
-## System Architecture
+[![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
+[![Qdrant](https://img.shields.io/badge/Qdrant-Vector%20DB-green.svg)](https://qdrant.tech/)
+[![Gemini 2.5](https://img.shields.io/badge/Gemini-2.5%20Flash-red.svg)](https://ai.google.dev/)
+[![Streamlit](https://img.shields.io/badge/Streamlit-Dashboard-ff4b4b.svg)](https://streamlit.io/)
 
-### Overview
-```
-disaster/
-├── main.py                          # Agent 14: Central Coordinator (Orchestrator)
-├── requirements.txt                 # Dependencies
-├── layers/
-│   ├── ingestion/                  # LAYER 1: PERCEPTION (Agents 1-4)
-│   │   ├── satellite.py            # Agent 1: Satellite imagery ingestion
-│   │   ├── embedding.py            # Agent 2: DINOv2 feature extraction (768-dim)
-│   │   ├── metadata.py             # Agent 3: JSON metadata parsing
-│   │   └── qdrant_upsert.py        # Agent 4: Vector database storage
-│   ├── search/                     # LAYER 2: RETRIEVAL (Agents 5-8)
-│   │   ├── query_planner.py        # Agent 5: Query planning (spatial/temporal filters)
-│   │   ├── hybrid_search.py        # Agent 6: Qdrant hybrid search (vector + metadata)
-│   │   ├── cross_transfer.py       # Agent 7: Cross-disaster transfer learning
-│   │   └── validator.py            # Agent 8: Result quality validation
-│   └── reasoning/                  # LAYER 3: REASONING (Agents 9-13)
-│       ├── synthesis.py            # Agent 9: Evidence pattern synthesis
-│       ├── llm_reasoning.py        # Agent 10: Citation-based LLM reports
-│       ├── confidence.py           # Agent 11: Confidence score calibration
-│       ├── explanation.py          # Agent 12: Visual explanation package
-│       └── priority.py             # Agent 13: Triage priority recommendation
-└── utils/
-    └── qdrant_init.py              # Collection initialization
-```
+---
 
-## 14 Agents Breakdown
+## 📋 Table of Contents
 
-### Layer 1: Perception / Ingestion
-1. **SatelliteAgent** - Downloads post-disaster satellite imagery from Maxar, Planet, or Sentinel-2
-2. **EmbeddingAgent** - Extracts 768-dimensional DINOv2 embeddings from imagery
-3. **MetadataAgent** - Parses and structures metadata (timestamp, geolocation, sensor info)
-4. **QdrantUpsertAgent** - Stores embeddings and metadata in Qdrant vector database
+1. [Problem Statement](#-problem-statement)
+2. [Our Solution](#-our-solution)
+3. [Key Features](#-key-features)
+4. [Quick Start (5 minutes)](#-quick-start-5-minutes)
+5. [Detailed Installation](#-detailed-installation)
+6. [Configuration](#️-configuration)
+7. [Running the System](#-running-the-system)
+8. [Using the Dashboard](#-using-the-dashboard)
+9. [Project Structure](#-project-structure)
+10. [Qdrant Features Used](#-qdrant-features-used)
+11. [Architecture](#-architecture)
+12. [Troubleshooting](#-troubleshooting)
 
-### Layer 2: Retrieval / Search
-5. **QueryPlannerAgent** - Plans search strategy with disaster-type-specific filters
-   - Earthquake: 50km radius, 30-day window
-   - Flood: 100km radius, 14-day window
-   - Wildfire: 200km radius, 60-day window
-   - Hurricane: 300km radius, 45-day window
-6. **SearchExecutionAgent** - Hybrid search combining vector similarity + spatial/temporal metadata filters
-7. **CrossDisasterAgent** - Cross-disaster transfer learning with penalty multipliers
-8. **RelevanceValidatorAgent** - Validates result quality and confidence metrics
+---
 
-### Layer 3: Reasoning
-9. **EvidenceSynthesisAgent** - Analyzes patterns and creates severity distribution histograms
-10. **LLMReasoningAgent** - Generates grounded damage assessment reports with citations
-11. **ConfidenceControllerAgent** - Calibrates confidence scores (60% vector similarity + 40% evidence quality)
-12. **ExplanationAgent** - Generates visual explanation package (heatmaps, timelines, gauges)
-13. **PriorityAgent** - Recommends triage priority levels (low/medium/high/critical) with resource allocation
+## 🎯 Problem Statement
 
-### Layer 4: Orchestration
-14. **CentralCoordinator** - Orchestrates all 13 agents through the complete pipeline
+**Qdrant-MAS Challenge**: Build a Multi-Agent System using Qdrant for disaster response that can:
+- Process multi-modal data (satellite imagery, voice, text)
+- Use vector similarity search for historical disaster matching
+- Provide real-time emergency response recommendations
+- Scale efficiently with binary quantization
 
-## Data Flow
+---
 
-```
-New Disaster Incident
-    ↓
-[LAYER 1] PERCEPTION
-    ↓
-Satellite Image → DINOv2 Embedding → Metadata Parsing → Qdrant Storage
-    ↓
-[LAYER 2] RETRIEVAL
-    ↓
-Query Planning → Hybrid Search → Cross-Disaster Penalty → Validation
-    ↓
-[LAYER 3] REASONING
-    ↓
-Pattern Synthesis → LLM Report → Confidence Calibration → Visual Explanation → Priority
-    ↓
-[FINAL OUTPUT]
-├── Damage Assessment Report (with citations)
-├── Triage Priority Map (resource allocation)
-├── Confidence Score (0-100%)
-└── Visual Explanation Package (heatmaps, timelines)
-```
+## 💡 Our Solution
 
-## Key Technologies
+**Guardian Overwatch** is an AI-powered disaster response system with **two operational modes**:
 
-- **Vector Database**: Qdrant (HNSW for efficient similarity search)
-- **Embeddings**: DINOv2 (Vision Transformer) - 768-dimensional
-- **Distance Metric**: Cosine similarity
-- **Search Type**: Hybrid (vector + metadata filtering)
-- **LLM Integration**: OpenAI API for grounded reports
-- **Visualization**: Matplotlib for heatmaps and timelines
+| Mode | Purpose | Key Tech |
+|------|---------|----------|
+| 🆘 **Distress Signal** | Real-time chat with victims, voice panic detection | Whisper STT, CLAP Audio |
+| 🛰️ **Guardian Intel** | Satellite imagery analysis, historical matching | DINOv2, Hybrid Search |
 
-## Setup & Installation
+Both modes are powered by **15 specialized AI agents** orchestrated through a unified pipeline.
+
+---
+
+## ✨ Key Features
+
+| Feature | Implementation |
+|---------|----------------|
+| 🛰️ **Satellite Image Analysis** | DINOv2 (ViT-B/14) → 768-dim dense vectors |
+| 🔍 **Hybrid Search** | Dense + Sparse (BM25) with RRF Fusion |
+| ⚡ **40x Faster Search** | Qdrant Binary Quantization |
+| 🌐 **Geo-Radius Filtering** | Find nearby historical disasters |
+| 🎙️ **Voice Input** | Whisper STT + CLAP panic detection |
+| 🤖 **LLM Reports** | Gemini 2.5 Flash emergency reports |
+| 📊 **Auto Visualizations** | 5 charts per analysis |
+| 🖥️ **Interactive Dashboard** | Streamlit dark theme UI |
+
+---
+
+## ⚡ Quick Start (5 minutes)
 
 ### Prerequisites
-- Python 3.9+
-- Qdrant server running locally (port 6333)
+- Python 3.10 or higher
+- Qdrant running (local or cloud)
+- Gemini API key
 
-### Installation
+### One-Command Setup
 
 ```bash
-# Install Qdrant locally (Docker recommended)
-docker run -p 6333:6333 qdrant/qdrant
+# Clone the repo
+git clone https://github.com/YOUR_USERNAME/guardian-overwatch.git
+cd guardian-overwatch
 
-# Clone and setup
-cd disaster
+# Create virtual environment
+python -m venv venv
+venv\Scripts\activate  # Windows
+# source venv/bin/activate  # Linux/Mac
+
+# Install dependencies
 pip install -r requirements.txt
 
-# Initialize Qdrant collection
-python utils/qdrant_init.py
+# Create .env file
+echo GEMINI_API_KEY=your_key_here > .env
+echo QDRANT_URL=http://localhost:6333 >> .env
+
+# Run!
+streamlit run app.py
 ```
 
-## Usage
+Open **http://localhost:8501** in your browser.
 
-### Basic Example
+---
 
-```python
-from main import CentralCoordinator
+## 📦 Detailed Installation
 
-# Initialize
-coordinator = CentralCoordinator()
+### Step 1: Clone Repository
 
-# Process incident
-result = coordinator.process_new_incident(
-    image_path="path/to/satellite_image.png",
-    latitude=34.0522,
-    longitude=-118.2437,
-    disaster_type="earthquake",
-    incident_id="EQ_2024_001"
-)
-
-# Access results
-print(result["damage_assessment_report"])
-print(result["triage_priority_map"])
-print(f"Confidence: {result['confidence_score']:.2%}")
+```bash
+git clone https://github.com/YOUR_USERNAME/guardian-overwatch.git
+cd guardian-overwatch
 ```
 
-### Running the Complete Pipeline
+### Step 2: Create Virtual Environment
+
+**Windows:**
+```bash
+python -m venv venv
+venv\Scripts\activate
+```
+
+**Linux/Mac:**
+```bash
+python3 -m venv venv
+source venv/bin/activate
+```
+
+### Step 3: Install Dependencies
+
+```bash
+pip install -r requirements.txt
+```
+
+> ⏱️ First install may take 5-10 minutes (downloading PyTorch, Transformers, etc.)
+
+### Step 4: Start Qdrant
+
+**Option A: Docker (Recommended)**
+```bash
+docker pull qdrant/qdrant
+docker run -p 6333:6333 -p 6334:6334 \
+  -v $(pwd)/qdrant_storage:/qdrant/storage \
+  qdrant/qdrant
+```
+
+**Option B: Qdrant Cloud**
+1. Go to [cloud.qdrant.io](https://cloud.qdrant.io)
+2. Create a free cluster
+3. Copy your cluster URL and API key
+
+**Option C: Download Binary**
+```bash
+# Download from https://github.com/qdrant/qdrant/releases
+./qdrant
+```
+
+---
+
+## ⚙️ Configuration
+
+### Create `.env` file
+
+Create a file named `.env` in the project root:
+
+```env
+# REQUIRED: Get from https://aistudio.google.com/
+GEMINI_API_KEY=your_gemini_api_key_here
+
+# Qdrant Connection
+# Option 1: Local Qdrant
+QDRANT_URL=http://localhost:6333
+
+# Option 2: Qdrant Cloud (uncomment if using)
+# QDRANT_URL=https://your-cluster.cloud.qdrant.io
+# QDRANT_API_KEY=your_qdrant_api_key
+```
+
+### Get Gemini API Key
+
+1. Go to [Google AI Studio](https://aistudio.google.com/)
+2. Click "Get API Key"
+3. Create a new key
+4. Copy and paste into `.env`
+
+---
+
+## ▶️ Running the System
+
+### Method 1: Streamlit Dashboard (Recommended)
+
+```bash
+streamlit run app.py
+```
+
+Then open **http://localhost:8501** in your browser.
+
+### Method 2: Command Line Interface
+
+```bash
+python run_system.py
+```
+
+**CLI Menu:**
+```
+[1] 🚨 DISTRESS SIGNAL MODE (Victim Chat)
+[2] 🌍 GUARDIAN OVERWATCH (Damage Assessment)
+[3] 🖥️ LAUNCH DASHBOARD (Streamlit UI)
+[t] 🔌 TERMINATE & SHOW UNIFIED TRIAGE
+```
+
+### Method 3: Direct Pipeline Execution
 
 ```bash
 python main.py
 ```
 
-## Output Structure
+---
 
-```json
-{
-  "incident_id": "EarthQuake_LA_2024_001",
-  "status": "COMPLETED",
-  "location": {
-    "latitude": 34.0522,
-    "longitude": -118.2437
-  },
-  "disaster_type": "earthquake",
-  "damage_assessment_report": "...",
-  "triage_priority_map": {
-    "priority_level": "high",
-    "priority_score": 0.78,
-    "response_time_hours": 6,
-    "resource_allocation": {
-      "personnel": 60,
-      "vehicles": 15,
-      "funds_percent": 35
-    }
-  },
-  "confidence_score": 0.82,
-  "explanation_package": {
-    "severity_heatmap": {...},
-    "timeline": {...},
-    "confidence_visualization": {...}
-  },
-  "quality_metrics": {
-    "result_count": 8,
-    "avg_score": 0.75,
-    "quality_score": 0.75
-  }
-}
-```
+## 🖥️ Using the Dashboard
 
-## Agent Communication Protocol
+### Home Screen
 
-Agents communicate through:
-1. **Structured Data Dictionaries** - Standard Python dicts with typed payloads
-2. **Qdrant API** - Vector database queries and storage
-3. **Payload Metadata** - Qdrant point payloads carry incident metadata
+When you launch the app, you'll see three operation modes:
 
-## Configuration Parameters
+1. **🚀 LAUNCH CHAT** - Enter Distress Signal mode
+2. **🚀 LAUNCH INTEL** - Enter Guardian Intel mode
+3. **🚀 VIEW STATS** - See system analytics
 
-### Query Planning Thresholds
-- `spatial_radius_km`: Search radius by disaster type
-- `temporal_days`: How far back to search for similar incidents
-- `severity_threshold`: Minimum confidence for results
-- `max_results`: Maximum number of results to retrieve
+### 🆘 Distress Signal Mode
 
-### Validation Rules
-- `score_threshold`: 0.60 minimum for acceptance
-- `required_results`: At least 3 similar incidents needed
-- Automatic rejection if quality score < 0.60
+1. Enter your GPS coordinates (or use defaults)
+2. Type your emergency message OR use voice input
+3. Chat with Guardian AI - it will:
+   - Provide immediate safety advice
+   - Dispatch emergency teams
+   - Track your situation
+4. Click "End Session & Generate Triage" for a full report
 
-### Confidence Calibration
-- Vector similarity weight: 60%
-- Evidence quality weight: 40%
-- Base calibration: 0.7
+**Voice Input:**
+- Click the 🎤 microphone button
+- Speak your message
+- Audio is transcribed via Whisper
+- Panic level is detected via CLAP
 
-## Performance Metrics
+### 🛰️ Guardian Intel Mode
 
-- **Vector Dimension**: 768 (DINOv2)
-- **Search Type**: Hybrid (vector + filters)
-- **Typical Latency**: ~200-500ms per incident
-- **Memory**: ~2GB for embeddings (scales with incident count)
+1. **Input Tab:**
+   - Set Latitude/Longitude
+   - Select Disaster Type
+   - Upload satellite image OR use file path
+   - View location on map
 
-## Testing
+2. **Click "Run Full 14-Agent Analysis"**
 
-The system includes mock implementations for:
-- Satellite imagery ingestion (local file paths)
-- DINOv2 embeddings (random normalized vectors)
-- Metadata parsing (structured JSON)
-- LLM reports (template-based)
+3. **Analysis Tab:**
+   - Watch agents process in real-time
+   - See progress bar
 
-For production:
-1. Connect to real Maxar/Planet APIs
-2. Replace mock embeddings with actual DINOv2 model
-3. Integrate OpenAI API for LLM reports
-4. Connect to real GIS/mapping systems
-
-## Error Handling
-
-All agents include:
-- Try-except blocks with logging
-- Graceful fallbacks
-- Error status reporting
-- Exception propagation to coordinator
-
-## Future Enhancements
-
-1. **Real-time Streaming**: WebSocket support for live satellite feeds
-2. **Multi-Modal Analysis**: Radar + Optical + Thermal fusion
-3. **Graph Analysis**: Incident relationship graphs
-4. **Advanced LLM**: GPT-4 Vision for image understanding
-5. **Mobile API**: REST endpoints for mobile clients
-6. **Distributed Agents**: Multi-node deployment with message queues
-
-## References
-
-- Qdrant Documentation: https://qdrant.tech
-- DINOv2: https://github.com/facebookresearch/dinov2
-- Problem Statement: See `Qdrant - MAS PS Final - Convolve 4.0 - R2.pdf`
-
-## License
-
-Hackathon Project - Convolve 4.0
+4. **Report Tab:**
+   - View Emergency Report
+   - See visualization charts
+   - Check confidence score
+   - Review triage priority
 
 ---
 
-**Created**: January 2024
-**Last Updated**: January 17, 2026
-**Version**: 1.0
+## 📁 Project Structure
+
+```
+guardian-overwatch/
+├── app.py                    # 🖥️ Streamlit Dashboard
+├── main.py                   # 👑 CentralCoordinator (15 Agents)
+├── run_system.py             # 📟 CLI Menu System
+├── chatbot_client.py         # 💬 CLI Chatbot
+├── requirements.txt          # 📦 Dependencies
+├── .env                      # 🔑 API Keys (create this)
+│
+├── layers/                   # 🤖 Agent Implementations
+│   ├── ingestion/            # Layer 1: Perception
+│   │   ├── satellite.py      # Image validation
+│   │   ├── embedding.py      # DINOv2 embeddings
+│   │   ├── sparse_embedding.py
+│   │   ├── metadata.py
+│   │   └── qdrant_upsert.py
+│   │
+│   ├── search/               # Layer 2: Retrieval
+│   │   ├── search_processor.py
+│   │   └── hybrid_search.py
+│   │
+│   └── reasoning/            # Layer 3: Reasoning
+│       ├── geo_search.py     # GeoRadius search
+│       ├── recomm.py         # Evidence synthesis
+│       ├── history_summarizer.py
+│       ├── llm_reasoning.py  # Gemini reports
+│       ├── evaluator.py      # Report auditor
+│       ├── post_processor.py
+│       ├── explanation.py    # Chart generation
+│       └── victim_chat.py    # Emergency chatbot
+│
+├── utils/                    # 🔧 Utilities
+│   ├── voice_input.py        # Whisper + CLAP
+│   └── async_utils.py        # Retry logic
+│
+├── imagery/                  # 🛰️ Sample images
+├── reports/                  # 📄 Generated reports
+├── chat_logs/                # 💬 Chat sessions
+│
+├── ARCHITECTURE.md           # 📐 System documentation
+└── README.md                 # 📖 This file
+```
+
+---
+
+## 🔧 Qdrant Features Used
+
+| Feature | Where | Purpose |
+|---------|-------|---------|
+| **Dense Vectors** | `embedding.py` | DINOv2 768-dim visual embeddings |
+| **Sparse Vectors** | `sparse_embedding.py` | BM25 keyword vectors |
+| **Hybrid Search** | `hybrid_search.py` | RRF fusion (dense + sparse) |
+| **Binary Quantization** | Collection config | 40x faster search, 2x oversampling |
+| **GeoRadius Filter** | `geo_search.py` | Find disasters within km radius |
+| **Payload Filtering** | `search_processor.py` | Filter by disaster_type |
+| **Named Vectors** | `hybrid_search.py` | Separate "dense" + "sparse" |
+
+---
+
+## 🏗️ Architecture
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                    GUARDIAN OVERWATCH                        │
+├─────────────────────────────────────────────────────────────┤
+│  LAYER 1: PERCEPTION          │  Satellite → DINOv2 → Qdrant │
+│  LAYER 2: RETRIEVAL           │  Hybrid Search + GeoRadius   │
+│  LAYER 3: REASONING           │  Gemini LLM → Report + Charts│
+└─────────────────────────────────────────────────────────────┘
+```
+
+See [ARCHITECTURE.md](ARCHITECTURE.md) for the complete 15-agent Mermaid diagram.
+
+---
+
+## 🔍 Troubleshooting
+
+### "GEMINI_API_KEY not found"
+```bash
+# Make sure .env file exists and contains:
+GEMINI_API_KEY=your_key_here
+```
+
+### "Cannot connect to Qdrant"
+```bash
+# Check if Qdrant is running:
+curl http://localhost:6333/health
+
+# If not, start it:
+docker run -p 6333:6333 qdrant/qdrant
+```
+
+### "ModuleNotFoundError"
+```bash
+# Reinstall dependencies:
+pip install -r requirements.txt
+```
+
+### "CUDA out of memory"
+```bash
+# DINOv2 defaults to CPU if CUDA fails
+# Or explicitly set:
+export CUDA_VISIBLE_DEVICES=""
+```
+
+### Voice input not working
+```bash
+# Install audio dependencies:
+pip install sounddevice soundfile
+```
+
+---
+
+## 📄 License
+
+MIT License - See [LICENSE](LICENSE) for details.
+
+---
+
+## 🙏 Acknowledgments
+
+- **Qdrant** - High-performance vector database
+- **Google Gemini** - LLM reasoning capabilities
+- **DINOv2** - Self-supervised visual embeddings
+- **Whisper** - Speech-to-text transcription
+- **CLAP** - Audio understanding
+- **xBD Dataset** - Disaster imagery
+- **Convolve 4.0** - Hackathon organizing team
+
+---
+
+<div align="center">
+
+**Made with ❤️ by Shaunak Majumdar & Arnav Chauhan**  
+**IIT Kharagpur**
+
+</div>

@@ -1,0 +1,2 @@
+Build a retrieval-augmented disaster damage assessment system that stores 850k+ post-disaster building images from the xBD dataset as episodic memories in Qdrant vector database, then uses hybrid search (DINOv2 embeddings + geographic/categorical filters) and multi-agent reasoning to assess new damaged buildings with full transparency by citing similar historical cases, enabling zero-shot cross-disaster transfer and rapid triage for emergency response.
+​

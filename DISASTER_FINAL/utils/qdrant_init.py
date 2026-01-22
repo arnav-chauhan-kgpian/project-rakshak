@@ -1,9 +1,6 @@
 import os
 from qdrant_client import QdrantClient
-from qdrant_client.models import (
-    Distance, VectorParams, SparseVectorParams, SparseIndexParams,
-    BinaryQuantization, BinaryQuantizationConfig
-)
+from qdrant_client.models import Distance, VectorParams, SparseVectorParams, SparseIndexParams, PayloadSchemaType
 
 # Load environment variables from .env file if present
 try:
@@ -42,7 +39,7 @@ def initialize_qdrant(force_recreate=False):
     """
     Initialize Qdrant collection for disaster response system.
     Non-destructive by default: creates collection if missing; preserves existing data and schema.
-    - Dense named vector: "image" (768-dim, Cosine, Binary Quantized for 40x speed)
+    - Dense named vector: "image" (768-dim, Cosine)
     - Sparse named vector: "text" (BM25 index)
     
     Args:
@@ -78,15 +75,32 @@ def initialize_qdrant(force_recreate=False):
             if not isinstance(vectors_cfg, dict) or "image" not in vectors_cfg:
                 schema_ok = False
                 mismatch_reasons.append("Missing named vector 'image'")
+            if "audio" not in vectors_cfg:
+                schema_ok = False
+                mismatch_reasons.append("Missing named vector 'audio'")
             if not sparse_cfg or "text" not in sparse_cfg:
                 schema_ok = False
                 mismatch_reasons.append("Missing sparse vector 'text'")
             
             if not schema_ok:
-                print(f"\n⚠ SCHEMA MISMATCH DETECTED:")
-                for reason in mismatch_reasons:
-                    print(f"   - {reason}")
-                print(f"\n   Collection has {info.points_count} points with incompatible schema.")
+                print(f"\n⚠ SCHEMA MISMATCH DETECTED: {mismatch_reasons}")
+                
+                # Try to add missing 'audio' vector non-destructively (Preserves existing Data)
+                needs_audio = any("audio" in r for r in mismatch_reasons)
+                if needs_audio:
+                    print("   Attempting to ADD 'audio' vector to existing collection (non-destructive)...")
+                    try:
+                        client.update_collection(
+                            collection_name=collection_name,
+                            vectors={
+                                "audio": VectorParams(size=512, distance=Distance.COSINE)
+                            }
+                        )
+                        print("   [OK] Successfully added 'audio' vector to schema.")
+                        return client
+                    except Exception as e:
+                        print(f"   ⚠ Config update failed (falling back to reset): {e}")
+
                 print(f"   AUTO-FIXING: Dropping and recreating collection...\n")
                 
                 # Auto-fix: drop and recreate
@@ -98,66 +112,55 @@ def initialize_qdrant(force_recreate=False):
                 raise Exception("Recreate")
             else:
                 print(f"[OK] Qdrant collection '{collection_name}' present (preserving existing vectors)")
-                # Ensure payload indexes exist even if collection exists
+                # Ensure payload index exists for filtering (idempotent)
                 try:
-                    from qdrant_client.models import PayloadSchemaType
-                    client.create_payload_index(collection_name=collection_name, field_name="incident_id", field_schema=PayloadSchemaType.KEYWORD)
-                    client.create_payload_index(collection_name=collection_name, field_name="disaster_type", field_schema=PayloadSchemaType.KEYWORD)
-                    client.create_payload_index(collection_name=collection_name, field_name="location", field_schema=PayloadSchemaType.GEO)
-                    print("  - Verified/Created Indexes: 'incident_id', 'disaster_type', 'location' (geo)")
-                except Exception:
-                    pass
-                return client
-        except Exception as e:
-            if "Recreate" not in str(e):
-                pass  # Collection doesn't exist, will create below
-            # Create collection with named vectors (multimodal) + BINARY QUANTIZATION
-            try:
-                client.create_collection(
-                    collection_name=collection_name,
-                    vectors_config={
-                        # Store full vectors on disk, use binary quantization in RAM for speed
-                        "image": VectorParams(
-                            size=768, 
-                            distance=Distance.COSINE,
-                            on_disk=True  # Full vectors on disk (saves RAM)
-                        )
-                    },
-                    sparse_vectors_config={
-                        "text": SparseVectorParams(index=SparseIndexParams())
-                    },
-                    # BINARY QUANTIZATION: 40x faster search, 32x less memory
-                    quantization_config=BinaryQuantization(
-                        binary=BinaryQuantizationConfig(always_ram=True)
-                    )
-                )
-                print(f"[OK] Qdrant collection '{collection_name}' created (Multimodal + Binary Quantization)")
-                print("  - Dense Vector: 768-dim DINOv2 (image) - Cosine similarity")
-                print("  - Sparse Vector: BM25 (text) - Dot product")
-                print("  - Quantization: BINARY (40x faster, 32x less RAM)")
-                print("  - Purpose: Hybrid multimodal disaster response search")
-                
-                # Create payload indices for filtering
-                try:
-                    from qdrant_client.models import PayloadSchemaType
                     client.create_payload_index(
                         collection_name=collection_name,
                         field_name="incident_id",
                         field_schema=PayloadSchemaType.KEYWORD
                     )
+                    # Create payload index for disaster_type filtering (Critical for strict typed search)
                     client.create_payload_index(
                         collection_name=collection_name,
                         field_name="disaster_type",
                         field_schema=PayloadSchemaType.KEYWORD
                     )
-                    client.create_payload_index(
-                        collection_name=collection_name,
-                        field_name="location",
-                        field_schema=PayloadSchemaType.GEO
-                    )
-                    print("  - Indexes: 'incident_id', 'disaster_type' (keyword) + 'location' (geo) created")
-                except Exception as idx_err:
-                    print(f"  ⚠ Index creation skipped: {idx_err}")
+                    print("  - Payload Indexes: incident_id, disaster_type (keyword) - Verified/Created")
+                except Exception:
+                    pass  # Index might already exist
+                return client
+        except Exception as e:
+            if "Recreate" not in str(e):
+                pass  # Collection doesn't exist, will create below
+            # Create collection with named vectors (multimodal)
+            try:
+                client.create_collection(
+                    collection_name=collection_name,
+                    vectors_config={
+                        "image": VectorParams(size=768, distance=Distance.COSINE),
+                        "audio": VectorParams(size=512, distance=Distance.COSINE)
+                    },
+                    sparse_vectors_config={
+                        "text": SparseVectorParams(index=SparseIndexParams())
+                    }
+                )
+                print(f"[OK] Qdrant collection '{collection_name}' created (Multimodal)")
+                print("  - Dense Vector: 768-dim DINOv2 (image) - Cosine similarity")
+                print("  - Sparse Vector: BM25 (text) - Dot product")
+                print("  - Purpose: Hybrid multimodal disaster response search")
+                
+                # Create payload indexes for filtering
+                client.create_payload_index(
+                    collection_name=collection_name,
+                    field_name="incident_id",
+                    field_schema=PayloadSchemaType.KEYWORD
+                )
+                client.create_payload_index(
+                    collection_name=collection_name,
+                    field_name="disaster_type",
+                    field_schema=PayloadSchemaType.KEYWORD
+                )
+                print("  - Payload Indexes: incident_id, disaster_type (keyword) - For filtering")
             except Exception as create_err:
                 # Handle 409 Conflict - collection already exists
                 if "409" in str(create_err) or "already exists" in str(create_err):
@@ -171,22 +174,6 @@ def initialize_qdrant(force_recreate=False):
                 print(f"   Next step: python main.py --batch-ingest\n")
                 import sys
                 sys.exit(0)
-
-        # Initialize Audio Memory Collection (CLAP Embeddings - 512 dim)
-        audio_collection = "disaster_audio"
-        try:
-            client.get_collection(audio_collection)
-            print(f"[OK] Qdrant collection '{audio_collection}' present")
-        except:
-            print(f"Creating '{audio_collection}' collection...")
-            client.create_collection(
-                collection_name=audio_collection,
-                vectors_config={
-                    "audio": VectorParams(size=512, distance=Distance.COSINE)
-                }
-            )
-            print(f"[OK] Qdrant collection '{audio_collection}' created (Audio Memory)")
-            print("  - Vector: 512-dim CLAP (audio) - Cosine similarity")
 
         return client
     except Exception as e:

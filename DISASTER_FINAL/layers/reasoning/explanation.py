@@ -21,9 +21,7 @@ class ExplanationAgent:
         self.explanation_components = [
             "damage_distribution",
             "confidence_gauge",
-            "severity_breakdown",
-            "risk_radar",
-            "resource_allocation"
+            "severity_breakdown"
         ]
         self._matplotlib_available = None
     
@@ -108,29 +106,7 @@ class ExplanationAgent:
                     "path": str(severity_path) if severity_path else None
                 }
                 
-                # 4. Risk Radar Chart
-                radar_path = self._generate_risk_radar(
-                    patterns, confidence_score,
-                    prefix
-                )
-                explanation_package["components"]["risk_radar"] = {
-                    "type": "radar_chart",
-                    "title": "Holistic Risk Assessment",
-                    "path": str(radar_path) if radar_path else None
-                }
-
-                # 5. Resource Allocation Chart
-                resource_path = self._generate_resource_chart(
-                    patterns.get("mode", "medium"),
-                    prefix
-                )
-                explanation_package["components"]["resource_allocation"] = {
-                    "type": "bar_chart",
-                    "title": "Recommended Resource Allocation",
-                    "path": str(resource_path) if resource_path else None
-                }
-                
-                print(f"  ✓ Generated 5 visualization charts in {self.output_dir}")
+                print(f"  ✓ Generated 3 visualization charts in {self.output_dir}")
             else:
                 # Fallback: placeholder URLs
                 explanation_package["components"]["damage_distribution"] = {
@@ -151,8 +127,6 @@ class ExplanationAgent:
                     "path": None,
                     "note": "matplotlib not available"
                 }
-                explanation_package["components"]["risk_radar"] = {"path": None, "note": "matplotlib missing"}
-                explanation_package["components"]["resource_allocation"] = {"path": None, "note": "matplotlib missing"}
             
             # Add geographic center
             explanation_package["components"]["geographic_info"] = {
@@ -341,118 +315,4 @@ class ExplanationAgent:
             
         except Exception as e:
             print(f"    Severity pie error: {e}")
-            return None
-
-    def _generate_risk_radar(self, patterns, confidence, prefix):
-        """Generate a 5-axis radar chart for holistic risk assessment."""
-        try:
-            import matplotlib.pyplot as plt
-            import numpy as np
-            import matplotlib
-            matplotlib.use('Agg')
-            
-            # 1. Define Categories and Values
-            categories = ['Severity', 'Urgency', 'Confidence', 'Impact', 'Recoverability']
-            N = len(categories)
-            
-            # Map severity to 0-1 scale
-            severity_map = {"low": 0.2, "medium": 0.5, "high": 0.8, "critical": 1.0, "unknown": 0.4}
-            sev_val = severity_map.get(patterns.get("mode", "medium"), 0.5)
-            
-            # Urgency derived from severity + confidence
-            urg_val = min(1.0, sev_val + (1 - confidence) * 0.2)
-            
-            # Impact derived from result count (proxy for scale)
-            res_count = patterns.get("result_count", 0)
-            imp_val = min(1.0, res_count / 10.0) if res_count > 0 else 0.5
-            
-            # Recoverability (Inverse of Severity)
-            rec_val = 1.0 - (sev_val * 0.8)
-            
-            values = [sev_val, urg_val, confidence, imp_val, rec_val]
-            values += values[:1] # Close the loop
-            
-            # 2. Compute Angles
-            angles = [n / float(N) * 2 * np.pi for n in range(N)]
-            angles += angles[:1]
-            
-            # 3. Plot
-            fig, ax = plt.subplots(figsize=(8, 8), subplot_kw=dict(polar=True))
-            
-            # Draw one axe per variable + labels
-            plt.xticks(angles[:-1], categories, color='#666', size=12)
-            
-            # Draw ylabels
-            ax.set_rlabel_position(0)
-            plt.yticks([0.2, 0.4, 0.6, 0.8], ["0.2", "0.4", "0.6", "0.8"], color="#999", size=8)
-            plt.ylim(0, 1.0)
-            
-            # Plot data
-            ax.plot(angles, values, linewidth=2, linestyle='solid', color='#E94560')
-            ax.fill(angles, values, '#E94560', alpha=0.25)
-            
-            ax.set_title("Holistic Risk Assessment", size=15, fontweight='bold', y=1.05)
-            
-            # Save
-            filepath = self.output_dir / f"{prefix}_risk_radar.png"
-            plt.tight_layout()
-            plt.savefig(filepath, dpi=150, bbox_inches='tight', facecolor='white')
-            plt.close()
-            
-            return filepath
-            
-        except Exception as e:
-            print(f"    Radar chart error: {e}")
-            return None
-
-    def _generate_resource_chart(self, priority_level, prefix):
-        """Generate horizontal bar chart for resource allocation."""
-        try:
-            import matplotlib.pyplot as plt
-            import matplotlib
-            matplotlib.use('Agg')
-            
-            # Define resources based on priority (mock logic similar to PostProcessor)
-            base_resources = {
-                "low": {"Personnel": 10, "Vehicles": 2, "Medics": 1, "Supplies (Tons)": 1},
-                "medium": {"Personnel": 25, "Vehicles": 5, "Medics": 3, "Supplies (Tons)": 5},
-                "high": {"Personnel": 60, "Vehicles": 12, "Medics": 8, "Supplies (Tons)": 15},
-                "critical": {"Personnel": 120, "Vehicles": 30, "Medics": 20, "Supplies (Tons)": 50},
-                "unknown": {"Personnel": 20, "Vehicles": 4, "Medics": 2, "Supplies (Tons)": 2}
-            }
-            
-            data = base_resources.get(priority_level, base_resources["medium"])
-            categories = list(data.keys())
-            values = list(data.values())
-            
-            fig, ax = plt.subplots(figsize=(10, 5))
-            
-            # Horizontal bars
-            y_pos = range(len(categories))
-            bars = ax.barh(y_pos, values, color='#667EEA')
-            
-            # Labels
-            ax.set_yticks(y_pos)
-            ax.set_yticklabels(categories, fontsize=11)
-            ax.invert_yaxis()  # Labels read top-to-bottom
-            ax.set_xlabel('Quantity / Limit', fontsize=11)
-            ax.set_title(f'Recommended Resources ({priority_level.title()} Priority)', fontsize=14, fontweight='bold')
-            
-            # Value labels on bars
-            for bar, val in zip(bars, values):
-                ax.text(bar.get_width() + (max(values)*0.01), bar.get_y() + bar.get_height()/2,
-                       str(val), va='center', fontsize=11, fontweight='bold', color='#333')
-            
-            ax.spines['right'].set_visible(False)
-            ax.spines['top'].set_visible(False)
-            
-            filepath = self.output_dir / f"{prefix}_resource_allocation.png"
-            plt.tight_layout()
-            plt.savefig(filepath, dpi=150, bbox_inches='tight', facecolor='white')
-            plt.close()
-            
-            return filepath
-            
-        except Exception as e:
-            print(f"    Resource chart error: {e}")
             return None

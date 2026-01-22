@@ -19,7 +19,7 @@ class SearchExecutionAgent:
         self.collection_name = "disaster_memory"
     
     def execute_search(self, query_vector, latitude, longitude, plan, 
-                       sparse_query_vector=None, exclude_incident_id=None, disaster_type=None):
+                       sparse_query_vector=None, exclude_incident_id=None):
         """
         Executes hybrid search using official Qdrant prefetch + RRF fusion.
         
@@ -34,20 +34,29 @@ class SearchExecutionAgent:
             plan: Search plan from QueryPlannerAgent
             sparse_query_vector: Sparse query vector (SparseVector from BM25)
             exclude_incident_id: Optional incident ID to exclude from results
-            disaster_type: Optional disaster type to filter results (e.g. 'earthquake')
             
         Returns:
             List of search results with fused scores
         """
         try:
             max_results = plan.get("max_results", 10)
-            prefetch_limit = max_results * 2  # Fetch more for better fusion
+            prefetch_limit = max_results * 3  # Increased for better RRF fusion quality
+            target_disaster_type = plan.get("disaster_filter", None)
             
-            # Build filter conditions
-            filter_conditions = []
+            # Build filter with strict disaster type matching + ID exclusion
+            must_conditions = []
             must_not_conditions = []
             
-            # Exclude self-match
+            # 1. Strict Disaster Type Filter (Critical for correct classification)
+            if target_disaster_type:
+                must_conditions.append(
+                    models.FieldCondition(
+                        key="disaster_type", 
+                        match=models.MatchValue(value=target_disaster_type)
+                    )
+                )
+            
+            # 2. Exclude Incident ID
             if exclude_incident_id:
                 must_not_conditions.append(
                     models.FieldCondition(
@@ -56,22 +65,10 @@ class SearchExecutionAgent:
                     )
                 )
             
-            # Filter by same disaster type (only cite same kind of disasters)
-            if disaster_type:
-                filter_conditions.append(
-                    models.FieldCondition(
-                        key="disaster_type",
-                        match=models.MatchValue(value=disaster_type)
-                    )
-                )
-            
-            # Build query filter
-            query_filter = None
-            if filter_conditions or must_not_conditions:
-                query_filter = models.Filter(
-                    must=filter_conditions if filter_conditions else None,
-                    must_not=must_not_conditions if must_not_conditions else None
-                )
+            query_filter = models.Filter(
+                must=must_conditions if must_conditions else None,
+                must_not=must_not_conditions if must_not_conditions else None
+            )
             
             # Build prefetch queries for hybrid search
             prefetch = []
@@ -105,23 +102,19 @@ class SearchExecutionAgent:
                 except Exception as sparse_err:
                     print(f"  ⚠ Sparse vector prefetch skipped: {sparse_err}")
             
-            # Execute hybrid query with server-side RRF fusion + Binary Quantization params
+            # Initialize results before try block
+            results = []
+            
+            # Execute hybrid query with server-side RRF fusion
             try:
                 response = self.client.query_points(
                     collection_name=self.collection_name,
                     prefetch=prefetch,
                     query=models.FusionQuery(fusion=models.Fusion.RRF),
                     limit=max_results,
-                    with_payload=True,
-                    # Binary Quantization: Oversample then rescore for accuracy
-                    search_params=models.SearchParams(
-                        quantization=models.QuantizationSearchParams(
-                            rescore=True,       # Re-rank using full vectors
-                            oversampling=2.0    # Fetch 2x candidates before rescoring
-                        )
-                    )
+                    with_payload=True
                 )
-                results = self._normalize_results(response.points)
+                results = self._normalize_results(response.points, target_disaster_type)
                 
                 if results:
                     fusion_type = "dense+sparse" if len(prefetch) > 1 else "dense-only"
@@ -130,10 +123,10 @@ class SearchExecutionAgent:
                     
             except Exception as hybrid_err:
                 print(f"  ⚠ Hybrid search error: {hybrid_err}")
-                # Fall back to dense-only search
+                results = []  # Ensure results is empty list on error
             
             # Fallback: Dense-only search (no fusion)
-            if not results:
+            if len(results) == 0:
                 print("  ⚠ Falling back to dense-only search...")
                 try:
                     response = self.client.query_points(
@@ -144,7 +137,7 @@ class SearchExecutionAgent:
                         limit=max_results,
                         with_payload=True
                     )
-                    results = self._normalize_results(response.points)
+                    results = self._normalize_results(response.points, target_disaster_type)
                     if results:
                         print(f"  ✓ Dense-only search: {len(results)} results")
                 except Exception as dense_err:
@@ -152,7 +145,7 @@ class SearchExecutionAgent:
                     results = []
             
             # Global fallback: Search without filters if still empty
-            if not results and plan.get("allow_global_fallback", True):
+            if len(results) == 0 and plan.get("allow_global_fallback", True):
                 print("  ⚠ No results with filters, trying global search...")
                 try:
                     response = self.client.query_points(
@@ -162,7 +155,7 @@ class SearchExecutionAgent:
                         limit=max_results,
                         with_payload=True
                     )
-                    results = self._normalize_results(response.points)
+                    results = self._normalize_results(response.points, target_disaster_type)
                     if results:
                         print(f"  ✓ Global search found {len(results)} results")
                 except Exception as global_err:
@@ -174,9 +167,11 @@ class SearchExecutionAgent:
             print(f"Hybrid Search Error: {e}")
             return []
 
-    def _normalize_results(self, points):
-        """Convert Qdrant ScoredPoint objects into plain dicts for downstream agents."""
+    def _normalize_results(self, points, target_disaster_type=None):
+        """Convert Qdrant ScoredPoint objects into plain dicts with score boosting and deduplication."""
         normalized = []
+        seen_incident_ids = set()  # For deduplication
+        
         for idx, p in enumerate(points or []):
             try:
                 # Check if p is a dict or an object with attributes
@@ -190,12 +185,36 @@ class SearchExecutionAgent:
                     score = getattr(p, "score", 0)
                     point_id = getattr(p, "id", idx)
                 
+                # Deduplication: skip if we've seen this incident
+                incident_id = (payload or {}).get("incident_id")
+                if incident_id and incident_id in seen_incident_ids:
+                    continue
+                if incident_id:
+                    seen_incident_ids.add(incident_id)
+                
+                # Score adjustment for matching disaster types (clamped to prevent over-confidence)
+                base_score = float(score) if score is not None else 0.0
+                boosted_score = base_score
+                if target_disaster_type and payload:
+                    result_disaster_type = payload.get("disaster_type", "")
+                    if result_disaster_type == target_disaster_type:
+                        # Additive bonus instead of multiplicative to prevent score inflation
+                        boosted_score = min(1.0, base_score + 0.05)  # 5% additive bonus, clamped
+                    elif result_disaster_type:
+                        boosted_score = base_score * 0.9  # 10% penalty for mismatch
+                # Ensure score never exceeds 1.0
+                boosted_score = min(1.0, max(0.0, boosted_score))
+                
                 normalized.append({
                     "id": point_id,
-                    "score": float(score) if score is not None else 0.0,
+                    "score": boosted_score,
+                    "original_score": float(score) if score is not None else 0.0,
                     "payload": payload if payload else {}
                 })
             except Exception as e:
                 print(f"    _normalize_results error for point {idx}: {e}")
                 continue
+        
+        # Sort by boosted score (descending)
+        normalized.sort(key=lambda x: x["score"], reverse=True)
         return normalized
