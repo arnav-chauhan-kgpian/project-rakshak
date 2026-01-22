@@ -389,15 +389,15 @@ guardian-overwatch/
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│                    GUARDIAN OVERWATCH                        │
+│                    PROJECT RAKSHAK                          │
 ├─────────────────────────────────────────────────────────────┤
-│  LAYER 1: PERCEPTION          │  Satellite → DINOv2 → Qdrant │
-│  LAYER 2: RETRIEVAL           │  Hybrid Search + GeoRadius   │
-│  LAYER 3: REASONING           │  Gemini LLM → Report + Charts│
+│  LAYER 1: PERCEPTION         │  Satellite → DINOv2 → Qdrant │
+│  LAYER 2: RETRIEVAL          │  Hybrid Search + GeoRadius   │
+│  LAYER 3: REASONING          │  Gemini LLM → Report + Charts│
 └─────────────────────────────────────────────────────────────┘
 ```
 
-See [ARCHITECTURE.md](ARCHITECTURE.md) for the complete 15-agent Mermaid diagram.
+See [ARCHITECTURE.md](ARCHITECTURE.md) for the complete 15-agent architecture diagram.
 
 ---
 
