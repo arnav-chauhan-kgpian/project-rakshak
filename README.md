@@ -228,7 +228,7 @@ We use a **911 Audio Dataset** (or similar emergency call dataset) for the distr
 2. Place them in:
    ```
    project-rakshak/
-   ├── train_audio/   # Place audio files here
+   ├── audio_data/   # Place audio files here
    │   ├── 911_recordings/
        ├── call_1.mp3
        ├── call_2.mp3
@@ -376,7 +376,7 @@ When you launch the app, you'll see three operation modes:
 |      ├── labels/       # Contains JSON metadata
 |      └── targets/
 │
-├── train_audio/   # Place audio files here
+├── audio_data/   # Place audio files here
 |      ├── 911_recordings/
 |      ├── call_1.mp3
 |      ├── call_2.mp3
@@ -422,7 +422,7 @@ When you launch the app, you'll see three operation modes:
 └─────────────────────────────────────────────────────────────┘
 ```
 
-See [ARCHITECTURE.md](ARCHITECTURE.md) for the complete 15-agent Mermaid diagram.
+See [ARCHITECTURE.md](ARCHITECTURE.md) for the complete 15-agent architectural diagram.
 
 ---
 
