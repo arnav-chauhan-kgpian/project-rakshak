@@ -229,11 +229,11 @@ We use a **911 Audio Dataset** (or similar emergency call dataset) for the distr
    ```
    project-rakshak/
    ├── audio_data/   # Place audio files here
-   │   ├── 911_recordings/
-       ├── call_1.mp3
-       ├── call_2.mp3
-       .....
-       └── 911_metadata.csv       
+   │    ├── 911_recordings/
+   │    ├── call_1.mp3
+   │    ├── call_2.mp3
+   │    .....
+   │    └── 911_metadata.csv       
    ```
 
 ### 3. Ingest Embeddings
@@ -247,7 +247,7 @@ python main.py --reset --batch-ingest
 > ⚠️ **Note:** This process generates:
 > - **768-dim DINOv2 vectors** for satellite images
 > - **512-dim CLAP vectors** for audio panic analysis
-> It may take 10-20 minutes depending on your hardware.
+> It may take a few minutes depending on your hardware.
 
 ---
 
