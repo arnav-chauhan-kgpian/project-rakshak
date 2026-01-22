@@ -327,13 +327,20 @@ When you launch the app, you'll see three operation modes:
 ## 📁 Project Structure
 
 ```
-guardian-overwatch/
+/
 ├── app.py                    # 🖥️ Streamlit Dashboard
 ├── main.py                   # 👑 CentralCoordinator (15 Agents)
 ├── run_system.py             # 📟 CLI Menu System
 ├── chatbot_client.py         # 💬 CLI Chatbot
+├── diagnose_collection.py    # Check if collections are made properly
+├── ingest_audio.py
+├── test_reasoning.py
+├── verify_layers.py
+├── qdrant_image.png
 ├── requirements.txt          # 📦 Dependencies
 ├── .env                      # 🔑 API Keys (create this)
+├── .env.example
+├── .gitignore
 │
 ├── layers/                   # 🤖 Agent Implementations
 │   ├── ingestion/            # Layer 1: Perception
@@ -356,7 +363,17 @@ guardian-overwatch/
 │       ├── post_processor.py
 │       ├── explanation.py    # Chart generation
 │       └── victim_chat.py    # Emergency chatbot
+├── train/
+|      ├── images/       # Contains *_post_disaster.png files
+|      ├── labels/       # Contains JSON metadata
+|      └── targets/
 │
+├── train_audio/   # Place audio files here
+|      ├── 911_recordings/
+|      ├── call_1.mp3
+|      ├── call_2.mp3
+|      .....
+|      └── 911_metadata.csv 
 ├── utils/                    # 🔧 Utilities
 │   ├── voice_input.py        # Whisper + CLAP
 │   └── async_utils.py        # Retry logic
@@ -364,7 +381,7 @@ guardian-overwatch/
 ├── imagery/                  # 🛰️ Sample images
 ├── reports/                  # 📄 Generated reports
 ├── chat_logs/                # 💬 Chat sessions
-│
+├── Screenshots/       
 ├── ARCHITECTURE.md           # 📐 System documentation
 └── README.md                 # 📖 This file
 ```
@@ -397,7 +414,7 @@ guardian-overwatch/
 └─────────────────────────────────────────────────────────────┘
 ```
 
-See [ARCHITECTURE.md](ARCHITECTURE.md) for the complete 15-agent architecture diagram.
+See [ARCHITECTURE.md](ARCHITECTURE.md) for the complete 15-agent Mermaid diagram.
 
 ---
 
