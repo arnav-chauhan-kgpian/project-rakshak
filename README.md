@@ -317,7 +317,7 @@ When you launch the app, you'll see three operation modes:
    - Upload satellite image OR use file path
    - View location on map
 
-2. **Click "Run Full 14-Agent Analysis"**
+2. **Click "Run Full Multi-Agent Analysis"**
 
 3. **Analysis Tab:**
    - Watch agents process in real-time
