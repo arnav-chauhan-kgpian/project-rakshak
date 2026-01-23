@@ -388,8 +388,7 @@ When you launch the app, you'll see three operation modes:
 │
 ├── imagery/                  # 🛰️ Sample images
 ├── reports/                  # 📄 Generated reports
-├── chat_logs/                # 💬 Chat sessions
-├── Screenshots/       
+├── chat_logs/                # 💬 Chat sessions   
 ├── ARCHITECTURE.md           # 📐 System documentation
 └── README.md                 # 📖 This file
 ```
