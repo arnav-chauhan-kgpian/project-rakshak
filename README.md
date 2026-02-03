@@ -40,6 +40,7 @@
 
 ## 💡 Our Solution
 (Note: A detailed report for our solution can be found here [REPORT](report.pdf).)
+
 **Project Rakshak** is an AI-powered disaster response system with **two operational modes**:
 
 | Mode | Purpose | Key Tech |
